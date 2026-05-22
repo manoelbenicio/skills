@@ -420,15 +420,8 @@ function Invoke-DeployConfigs {
 
 function Invoke-SymlinkSkills {
     Write-Host ""
-    Write-Host "  ── Phase 5: Symlink Local Skills ──────────────────────────" -ForegroundColor Magenta
+    Write-Host "  -- Phase 5: Symlink ALL Skills for @autocomplete -----------" -ForegroundColor Magenta
     Write-Host ""
-
-    $skillsListFile = Join-Path $script:BOOTSTRAP_DIR "local-skills.txt"
-
-    if (-not (Test-Path $skillsListFile)) {
-        Step-Fail "local-skills.txt not found in .bootstrap/"
-        return $false
-    }
 
     # Ensure skills dir exists
     if (-not (Test-Path $script:SKILLS_DIR)) {
@@ -436,70 +429,37 @@ function Invoke-SymlinkSkills {
         Write-SubStep "Created $($script:SKILLS_DIR)"
     }
 
-    # Read skill names
-    $skillNames = Get-Content $skillsListFile |
-        Where-Object { $_ -and -not $_.StartsWith("#") } |
-        ForEach-Object { $_.Trim() } |
-        Where-Object { $_ }
+    # Get ALL skill folders from repo (excluding hidden dirs like .git, .bootstrap)
+    $repoSkills = Get-ChildItem $script:REPO_DIR -Directory | Where-Object { $_.Name -notlike '.*' }
 
     $linked  = 0
     $skipped = 0
     $failed  = 0
 
-    foreach ($name in $skillNames) {
-        $source = Join-Path $script:REPO_DIR $name
-        $target = Join-Path $script:SKILLS_DIR $name
+    foreach ($skill in $repoSkills) {
+        $source = $skill.FullName
+        $target = Join-Path $script:SKILLS_DIR $skill.Name
 
-        # Verify source exists
-        if (-not (Test-Path $source)) {
-            Write-SubStep "SKIP: $name - not in repo"
+        # Check if target already exists
+        if (Test-Path $target) {
             $skipped++
             continue
         }
 
-        # Check if target already exists
-        if (Test-Path $target) {
-            $item = Get-Item $target -Force
-            # Already a symlink pointing to correct location?
-            if ($item.LinkType -eq "SymbolicLink" -and $item.Target -contains $source) {
-                $skipped++
-                continue
-            }
-            # It's a real directory (legacy copy) -- remove it to replace with symlink
-            if (-not $item.LinkType) {
-                try {
-                    Remove-Item $target -Recurse -Force
-                    Write-SubStep "Replaced copy with symlink: $name"
-                } catch {
-                    Write-SubStep "FAIL: Could not remove existing $name`: $_"
-                    $failed++
-                    continue
-                }
-            }
-        }
-
-        # Create symlink (requires elevated prompt on older Windows)
+        # Create junction (no elevation required, instant, zero disk usage)
         try {
-            New-Item -ItemType SymbolicLink -Path $target -Target $source -Force | Out-Null
+            cmd /c mklink /J "$target" "$source" 2>$null | Out-Null
             $linked++
         } catch {
-            # Fallback: try directory junction (no elevation required)
-            try {
-                cmd /c mklink /J "$target" "$source" 2>$null | Out-Null
-                $linked++
-            } catch {
-                Write-SubStep "FAIL: $name -- $_"
-                $failed++
-            }
+            $failed++
         }
     }
 
+    $totalCount = (Get-ChildItem $script:SKILLS_DIR -Directory).Count
     if ($failed -eq 0) {
-        $totalCount = $skillNames.Count
-        Step-Ok "Skills linked: $linked new, $skipped already present, $totalCount total"
+        Step-Ok "Skills linked: $linked new, $skipped existing, $totalCount total in @autocomplete"
     } else {
-        Step-Warn "Skills linked: $linked new, $skipped already present, $failed FAILED"
-        Step-Warn "Symlink failures usually mean you need to run PowerShell as Administrator"
+        Step-Warn "Skills linked: $linked new, $skipped existing, $failed FAILED"
     }
 
     return ($failed -eq 0)
