@@ -58,3 +58,4 @@ vibe-code-auditor
 web-artifacts-builder
 web-design-guidelines
 writing-plans
+skill-catalog
