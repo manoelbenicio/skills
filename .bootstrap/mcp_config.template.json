@@ -1,0 +1,51 @@
+﻿{
+  "mcpServers": {
+    "StitchMCP": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://stitch.googleapis.com/mcp",
+        "--header",
+        "X-Goog-Api-Key: __STITCH_API_KEY__"
+      ]
+    },
+    "firebase-mcp-server": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "firebase-tools@latest",
+        "mcp"
+      ]
+    },
+    "cloudrun": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@google-cloud/cloud-run-mcp"
+      ]
+    },
+    "google-developer-knowledge": {
+      "serverUrl": "https://developerknowledge.googleapis.com/mcp",
+      "authProviderType": "google_credentials"
+    },
+    "skills-consolidator": {
+      "command": "wsl",
+      "args": [
+        "-d",
+        "Ubuntu",
+        "--",
+        "python3",
+        "__SKILLS_MCP_PATH__"
+      ]
+    },
+    "chrome-devtools-mcp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "chrome-devtools-mcp@latest"
+      ],
+      "env": {}
+    }
+  }
+}

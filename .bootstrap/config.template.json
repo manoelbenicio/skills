@@ -1,0 +1,27 @@
+﻿{
+  "userSettings": {
+    "browserJsExecutionPolicy": "BROWSER_JS_EXECUTION_POLICY_TURBO",
+    "globalPermissionGrants": {
+      "allow": [
+        "command(wsl)",
+        "command(npx)",
+        "command(npm run)",
+        "command(git)",
+        "command(Get-ChildItem)",
+        "command(Test-Path)",
+        "command(New-Item)",
+        "command(Remove-Item)",
+        "command(Copy-Item)",
+        "command(Select-String)",
+        "command(powershell)",
+        "command(curl.exe)",
+        "command(nslookup)",
+        "command(try)",
+        "command(if)",
+        "command(code)"
+      ]
+    },
+    "themeMode": "THEME_MODE_DARK",
+    "useAiCredits": true
+  }
+}
